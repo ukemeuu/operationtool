@@ -14,11 +14,13 @@
  *    - Copy the Web App URL and paste it into your React app (APPSCRIPT_URL).
  */
 
-const CALENDAR_ID = 'primary'; // Use 'primary' or a specific Calendar ID
+const CALENDAR_ID = 'primary';
 const SHEET_NAME = 'LeaveRequests';
+const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE'; // <--- PASTE YOUR SHEET ID HERE
 
 function setup() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  // Open by ID is more robust if the script isn't directly created from the Sheet
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
@@ -29,13 +31,13 @@ function setup() {
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
-    const { name, email, leaveType, dates } = data; // dates is array of "YYYY-MM-DD" strings
+    const { name, email, leaveType, dates } = data;
 
     if (!dates || dates.length === 0) {
       return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'No dates selected' })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // 1. Check for Conflicts in Google Calendar
+    // 1. Check for Conflicts
     const conflict = checkConflicts(dates);
     if (conflict) {
       return ContentService.createTextOutput(JSON.stringify({ 
@@ -45,13 +47,15 @@ function doPost(e) {
     }
 
     // 2. Save to Google Sheet
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     let sheet = ss.getSheetByName(SHEET_NAME);
     if (!sheet) {
-      setup();
-      sheet = ss.getSheetByName(SHEET_NAME);
+      // If sheet doesn't exist, try to setup or fail gracefully
+      try { setup(); sheet = ss.getSheetByName(SHEET_NAME); } catch (e) {}
     }
-    sheet.appendRow([new Date(), name, email, leaveType, dates.join(', '), 'Approved']);
+    if (sheet) {
+       sheet.appendRow([new Date(), name, email, leaveType, dates.join(', '), 'Approved']);
+    }
 
     // 3. Create Calendar Events
     createCalendarEvents(name, leaveType, dates);

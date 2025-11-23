@@ -13,7 +13,7 @@ const LEAVE_TYPES = [
 
 const MAX_DAYS_PER_REQUEST = 4;
 // Placeholder URL - User needs to replace this with their deployed Web App URL
-const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzN6SI9EjggqxCU1PFRRxoT_FxvrkaPrfFqJrqMXeCveH9qLuGXL5JoCYgueVqmDE6HOQ/exec';
+const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxsjNlKTM5dgXMUUky2z9RVMflJ53aoTFVSxAS7qGXdQUOzNoP9TVK4RpowhC_vDeg2FQ/exec';
 
 export function LeaveRequest({ onBack }) {
   const [step, setStep] = useState(0);
