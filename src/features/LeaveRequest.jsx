@@ -67,7 +67,7 @@ export function LeaveRequest({ onBack }) {
       });
 
       alert("Leave Request Submitted! (Data would be sent to Google Sheets)");
-      onBack();
+      setStep(4); // Move to success step
     } catch (error) {
       alert("Failed to submit request. Please try again.");
     } finally {
@@ -78,11 +78,11 @@ export function LeaveRequest({ onBack }) {
   return (
     <TypeformContainer
       currentStep={step}
-      totalSteps={4}
+      totalSteps={5}
       onNext={handleNext}
       onPrev={handlePrev}
       isFirst={false}
-      isLast={step === 3}
+      isLast={step === 4}
     >
       {step === 0 && (
         <PersonalDetailsStep
@@ -181,6 +181,24 @@ export function LeaveRequest({ onBack }) {
             ) : (
               "Submit Request"
             )}
+          </button>
+        </div>
+      )}
+
+      {step === 4 && (
+        <div className="space-y-6 text-center">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check size={40} className="text-green-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-secondary mb-2">Request Received</h1>
+          <p className="text-gray-500 text-lg mb-8">
+            Management will get back to you shortly.
+          </p>
+          <button
+            onClick={onBack}
+            className="w-full py-4 bg-secondary text-white font-bold text-lg rounded-xl hover:bg-gray-800 transition-colors shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Back to Home
           </button>
         </div>
       )}

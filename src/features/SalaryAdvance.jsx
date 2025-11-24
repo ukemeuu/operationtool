@@ -29,11 +29,11 @@ export function SalaryAdvance({ onBack }) {
     return (
         <TypeformContainer
             currentStep={step}
-            totalSteps={4}
+            totalSteps={5}
             onNext={handleNext}
             onPrev={handlePrev}
             isFirst={false}
-            isLast={step === 3}
+            isLast={step === 4}
         >
             {step === 0 && (
                 <PersonalDetailsStep
@@ -99,12 +99,30 @@ export function SalaryAdvance({ onBack }) {
                     </div>
                     <button
                         onClick={() => {
-                            alert("Salary Advance Request Submitted!");
-                            onBack();
+                            // alert("Salary Advance Request Submitted!");
+                            setStep(4);
                         }}
                         className="w-full py-4 bg-primary text-secondary font-bold text-lg rounded-xl hover:bg-yellow-400 transition-colors shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
                     >
                         Submit Request
+                    </button>
+                </div>
+            )}
+
+            {step === 4 && (
+                <div className="space-y-6 text-center">
+                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </div>
+                    <h1 className="text-3xl font-bold text-secondary mb-2">Request Received</h1>
+                    <p className="text-gray-500 text-lg mb-8">
+                        Management will get back to you shortly.
+                    </p>
+                    <button
+                        onClick={onBack}
+                        className="w-full py-4 bg-secondary text-white font-bold text-lg rounded-xl hover:bg-gray-800 transition-colors shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        Back to Home
                     </button>
                 </div>
             )}
