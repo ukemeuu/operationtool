@@ -3,7 +3,7 @@ import { TypeformContainer } from '../components/TypeformContainer';
 import { PersonalDetailsStep } from '../components/PersonalDetailsStep';
 import { Check, Loader2 } from 'lucide-react';
 
-// Deployed Web App URL
+// Deployed Web App URL - Updated for Vercel trigger
 const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwb1KlRAv56fwRNeZyOPuEqnR5i6AQ4Oru7EwZFPDDOL-7cfyQu4f7y2ibmHOKQdOdq/exec';
 
 export function SalaryAdvance({ onBack }) {
