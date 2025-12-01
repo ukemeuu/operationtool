@@ -12,8 +12,8 @@ const LEAVE_TYPES = [
 ];
 
 const MAX_DAYS_PER_REQUEST = 4;
-// Placeholder URL - User needs to replace this with their deployed Web App URL
-const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxsjNlKTM5dgXMUUky2z9RVMflJ53aoTFVSxAS7qGXdQUOzNoP9TVK4RpowhC_vDeg2FQ/exec';
+// Deployed Web App URL
+const APPSCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwb1KlRAv56fwRNeZyOPuEqnR5i6AQ4Oru7EwZFPDDOL-7cfyQu4f7y2ibmHOKQdOdq/exec';
 
 export function LeaveRequest({ onBack }) {
   const [step, setStep] = useState(0);
@@ -55,20 +55,31 @@ export function LeaveRequest({ onBack }) {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // In a real scenario, we would fetch(APPSCRIPT_URL, ...)
-      // For now, we simulate a delay and success
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Mocking the payload that would be sent
-      console.log("Submitting to AppScript:", {
+      const payload = {
         action: 'leave_request',
         ...formData,
         dates: formData.dates.map(d => format(d, 'yyyy-MM-dd'))
+      };
+
+      // Using no-cors mode because Google Apps Script Web Apps often have CORS issues
+      // when called from client-side JS. This means we won't get a readable response,
+      // but the request will go through.
+      await fetch(APPSCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
-      alert("Leave Request Submitted! (Data would be sent to Google Sheets)");
+      console.log("Submitted to AppScript:", payload);
+
+      // Since we can't read the response in no-cors, we assume success if no network error thrown
+      alert("Leave Request Submitted!");
       setStep(4); // Move to success step
     } catch (error) {
+      console.error("Submission error:", error);
       alert("Failed to submit request. Please try again.");
     } finally {
       setIsSubmitting(false);

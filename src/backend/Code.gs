@@ -15,56 +15,93 @@
  */
 
 const CALENDAR_ID = 'primary';
-const SHEET_NAME = 'LeaveRequests';
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE'; // <--- PASTE YOUR SHEET ID HERE
+const SHEET_LEAVE = 'LeaveRequests';
+const SHEET_SALARY = 'SalaryAdvance';
+const SPREADSHEET_ID = '1vOURGbtBBOeMZnOgjCWDHIr11XLrJ5yUsTw7yAEDnSk'; // <--- PASTE YOUR SHEET ID HERE
 
 function setup() {
-  // Open by ID is more robust if the script isn't directly created from the Sheet
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(SHEET_NAME);
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-    sheet.appendRow(['Timestamp', 'Name', 'Email', 'Type', 'Dates', 'Status']);
+  
+  // Setup Leave Sheet
+  let leaveSheet = ss.getSheetByName(SHEET_LEAVE);
+  if (!leaveSheet) {
+    leaveSheet = ss.insertSheet(SHEET_LEAVE);
+    leaveSheet.appendRow(['Timestamp', 'Name', 'Email', 'Type', 'Dates', 'Status']);
+  }
+
+  // Setup Salary Sheet
+  let salarySheet = ss.getSheetByName(SHEET_SALARY);
+  if (!salarySheet) {
+    salarySheet = ss.insertSheet(SHEET_SALARY);
+    salarySheet.appendRow(['Timestamp', 'Name', 'Email', 'Staff ID', 'Amount', 'Status']);
   }
 }
 
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
-    const { name, email, leaveType, dates } = data;
+    const { action } = data;
 
-    if (!dates || dates.length === 0) {
-      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'No dates selected' })).setMimeType(ContentService.MimeType.JSON);
+    if (action === 'leave_request') {
+      return handleLeaveRequest(data);
+    } else if (action === 'salary_advance') {
+      return handleSalaryAdvance(data);
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'Unknown action' })).setMimeType(ContentService.MimeType.JSON);
     }
-
-    // 1. Check for Conflicts
-    const conflict = checkConflicts(dates);
-    if (conflict) {
-      return ContentService.createTextOutput(JSON.stringify({ 
-        status: 'error', 
-        message: `Conflict detected! Leave already booked for ${conflict}.` 
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
-
-    // 2. Save to Google Sheet
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    let sheet = ss.getSheetByName(SHEET_NAME);
-    if (!sheet) {
-      // If sheet doesn't exist, try to setup or fail gracefully
-      try { setup(); sheet = ss.getSheetByName(SHEET_NAME); } catch (e) {}
-    }
-    if (sheet) {
-       sheet.appendRow([new Date(), name, email, leaveType, dates.join(', '), 'Approved']);
-    }
-
-    // 3. Create Calendar Events
-    createCalendarEvents(name, leaveType, dates);
-
-    return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Leave approved and scheduled.' })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+function handleLeaveRequest(data) {
+  const { name, email, leaveType, dates } = data;
+
+  if (!dates || dates.length === 0) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'No dates selected' })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 1. Check for Conflicts
+  const conflict = checkConflicts(dates);
+  if (conflict) {
+    return ContentService.createTextOutput(JSON.stringify({ 
+      status: 'error', 
+      message: `Conflict detected! Leave already booked for ${conflict}.` 
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 2. Save to Google Sheet
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(SHEET_LEAVE);
+  if (!sheet) {
+    try { setup(); sheet = ss.getSheetByName(SHEET_LEAVE); } catch (e) {}
+  }
+  
+  if (sheet) {
+     sheet.appendRow([new Date(), name, email, leaveType, dates.join(', '), 'Approved']);
+  }
+
+  // 3. Create Calendar Events
+  createCalendarEvents(name, leaveType, dates);
+
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Leave approved and scheduled.' })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function handleSalaryAdvance(data) {
+  const { name, email, staffId, amount } = data;
+
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(SHEET_SALARY);
+  if (!sheet) {
+    try { setup(); sheet = ss.getSheetByName(SHEET_SALARY); } catch (e) {}
+  }
+
+  if (sheet) {
+    sheet.appendRow([new Date(), name, email, staffId, amount, 'Pending']);
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success', message: 'Salary advance request submitted.' })).setMimeType(ContentService.MimeType.JSON);
 }
 
 function checkConflicts(dateStrings) {
